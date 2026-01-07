@@ -1,4 +1,3 @@
-
 /**
  * 点位数据库
  * type: 'place' (蓝色), 'note' (红色), 'explanation' (黄色)
@@ -542,4 +541,5 @@ const myPoints = [
         desc: "+ 此符号表示该地有教堂或祈祷室。++ 双十字表示有两座教堂。 O 表示该传教点需要教堂和传教士。++++ 黑色小十字表示当地有信众前往最近的集会点，且传教士已在此取得传教成果；但由于缺乏体面的场所，目前无法举行弥撒。", 
         latin: "+ Questo segno denota esservi chiesa, o oratorio ；++ Due croci significano due chiese.  O denota che la missione vuol chiesa e missionario ；++++ le crocette piccole negre significano esservi qualche p.no [popolo] che concorre all'assemblea più vicina; e dove il miss.º [missionario] ha predicato con frutto; se bene non puote celebrare p [per] non esservi luogo decente. " 
     }, 
+
 ];
