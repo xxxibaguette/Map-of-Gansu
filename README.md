@@ -40,19 +40,22 @@
     latin: "原文对照" 
 },
 ```
-2. 更新数据后如何生效？
+### 2. 更新数据后如何生效？
+
 由于系统开启了 Service Worker 缓存，修改 data.js 后，必须修改 sw.js 文件第一行的版本号（例如从 v1.2 改为 v1.3），否则浏览器会继续显示旧版数据。
 
 
-🚀 发布方式
-该项目为纯静态网页，无需服务器后端。
-推荐平台：Vercel, GitHub Pages 或 Netlify。
-注意事项：由于涉及 Service Worker，必须在 HTTPS 环境下运行才能激活离线缓存功能。
-本地预览：建议使用 VS Code 的 Live Server 插件启动，不要直接双击 HTML 文件。
+## 🚀 发布方式
+
+* 该项目为纯静态网页，无需服务器后端。
+* **推荐平台**：Vercel, GitHub Pages 或 Netlify。
+* **注意事项**：由于涉及 Service Worker，必须在 HTTPS 环境下运行才能激活离线缓存功能。
+* **本地预览**：建议使用 VS Code 的 Live Server 插件启动，不要直接双击 HTML 文件。
 
 
-📜 学术申明
-地图来源：基于 VOC Borg.cin.507 
-网页：https://digi.vatlib.it/view/MSS_Borg.cin.507
+## 📜 学术申明
 
-在线索引：Vatican Library MSS_Borg.cin.507
+* **地图来源**：基于 VOC Borg.cin.507 
+* **网页**：https://digi.vatlib.it/view/MSS_Borg.cin.507
+
+* **在线索引**：Vatican Library MSS_Borg.cin.507
