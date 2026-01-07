@@ -1,9 +1,4 @@
-/**
- * 历史地图交互系统 - Service Worker (离线缓存)
- * 版本号: v1.3 (简洁版)
- */
-
-const CACHE_NAME = 'history-map-clean-v1.3';
+const CACHE_NAME = 'history-map-clean-v1.4';
 
 // 核心资源列表
 const ASSETS_TO_CACHE = [
@@ -64,4 +59,5 @@ self.addEventListener('fetch', (event) => {
             return fetch(event.request);
         })
     );
+
 });
