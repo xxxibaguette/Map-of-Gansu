@@ -55,7 +55,7 @@
 
 ## 📜 学术申明
 
-* **地图来源**：基于 VOC Borg.cin.507 
+* **地图来源**：基于 BAV Borg.cin.507 
 * **网页**：https://digi.vatlib.it/view/MSS_Borg.cin.507
 
 * **在线索引**：Vatican Library MSS_Borg.cin.507
