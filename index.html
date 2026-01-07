@@ -1,0 +1,242 @@
+好的，已经为您去掉了画中画（MiniMap）相关的代码。现在系统回归到了左侧控制面板＋全屏地图的简洁结构，同时保留了**搜索建议**、**分类筛选**和**离线缓存**等核心优化功能。
+
+以下是为您整合后的完整 `index.html`：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史地图交互系统 - 简洁增强版</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
+    <style>
+        :root {
+            --primary-blue: #2a7fff;
+            --accent-red: #ff4b2b;
+            --accent-gold: #ffcc00;
+            --accent-purple: #a32bff;
+            --bg-paper: #fdf6e3;
+            --text-dark: #4b3621;
+        }
+
+        body { margin: 0; padding: 0; background: #1a1a1a; font-family: "STSong", "SimSun", serif; overflow: hidden; }
+        #map { height: 100vh; width: 100vw; background: #242424; }
+
+        /* 左侧控制面板 */
+        #control-panel {
+            position: fixed; top: 20px; left: 20px; z-index: 2000;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        
+        .search-group { display: flex; flex-direction: column; position: relative; }
+        .search-bar { display: flex; gap: 5px; }
+        #search-input {
+            width: 260px; height: 38px; padding: 0 15px;
+            border-radius: 20px; border: 1px solid #444;
+            background: rgba(255, 255, 255, 0.95); font-size: 14px; outline: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        #search-btn {
+            height: 38px; padding: 0 18px; border-radius: 20px;
+            border: none; background: var(--primary-blue); color: white;
+            cursor: pointer; font-weight: bold; transition: background 0.2s;
+        }
+        #search-btn:hover { background: #1a5ccc; }
+
+        /* 自动补全列表 */
+        #autocomplete-list {
+            position: absolute; top: 42px; width: 260px; 
+            background: white; border-radius: 8px; max-height: 250px; 
+            overflow-y: auto; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 3000;
+        }
+        .suggestion-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; color: #333; }
+        .suggestion-item:hover { background: #f0f7ff; }
+
+        /* 筛选标签栏 - 古风配色 */
+        #filter-bar {
+            display: flex; gap: 8px; background: rgba(255, 248, 220, 0.9);
+            padding: 10px 15px; border-radius: 12px; border: 1px solid #8b5a2b;
+            backdrop-filter: blur(4px); box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .filter-item { display: flex; align-items: center; color: var(--text-dark); font-size: 12px; cursor: pointer; font-weight: bold; user-select: none; }
+        .filter-item input { margin-right: 5px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+        /* 底部坐标面板 */
+        #coord-panel {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.85); color: #00ff00; padding: 8px 20px;
+            border-radius: 30px; font-family: monospace; font-size: 13px;
+            border: 1px solid #444; z-index: 1500; pointer-events: none;
+        }
+
+        /* 弹窗样式定制 */
+        .custom-popup .leaflet-popup-content-wrapper { background: var(--bg-paper); border-radius: 4px; color: #333; }
+        .popup-title { font-weight: bold; font-size: 17px; border-bottom: 1px solid #d4c5a9; margin-bottom: 8px; padding-bottom: 4px; }
+        .popup-desc { line-height: 1.5; margin-bottom: 10px; }
+        .popup-latin { font-style: italic; color: #657b83; font-size: 12px; border-top: 1px dotted #ccc; padding-top: 6px; }
+
+        /* 类型色彩边框 */
+        .popup-place { border-left: 6px solid var(--primary-blue); }
+        .popup-note { border-left: 6px solid var(--accent-red); }
+        .popup-explanation { border-left: 6px solid var(--accent-gold); }
+        .popup-PS { border-left: 6px solid var(--accent-purple); }
+    </style>
+</head>
+<body>
+
+<div id="control-panel">
+    <div class="search-group">
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="搜索地点或文献..." autocomplete="off">
+            <button id="search-btn">搜索</button>
+        </div>
+        <div id="autocomplete-list"></div>
+    </div>
+
+    <div id="filter-bar">
+        <label class="filter-item"><input type="checkbox" checked value="place"><span class="dot" style="background:var(--primary-blue)"></span>地名</label>
+        <label class="filter-item"><input type="checkbox" checked value="note"><span class="dot" style="background:var(--accent-red)"></span>备注</label>
+        <label class="filter-item"><input type="checkbox" checked value="explanation"><span class="dot" style="background:var(--accent-gold)"></span>背景</label>
+        <label class="filter-item"><input type="checkbox" checked value="PS"><span class="dot" style="background:var(--accent-purple)"></span>符号</label>
+    </div>
+</div>
+
+<div id="map"></div>
+<div id="coord-panel">点击地图以定位</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="data.js"></script>
+
+<script>
+    // 1. 初始化地图逻辑
+    const imageUrl = 'map.jpg'; 
+    const imgW = 2000, imgH = 1500; 
+    const bounds = [[0, 0], [imgH, imgW]];
+
+    const map = L.map('map', { 
+        crs: L.CRS.Simple, 
+        minZoom: -2, 
+        maxZoom: 3, 
+        attributionControl: false 
+    });
+
+    L.imageOverlay(imageUrl, bounds).addTo(map);
+    map.fitBounds(bounds);
+
+    // 2. 图标配置
+    const icons = {
+        place: new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] }),
+        note: new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] }),
+        explanation: new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] }),
+        PS: new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] })
+    };
+
+    const markersCluster = L.markerClusterGroup({ disableClusteringAtZoom: 1 });
+    const allMarkers = [];
+
+    // 3. 渲染逻辑
+    function initMarkers() {
+        if (typeof myPoints === 'undefined') return;
+        myPoints.forEach(p => {
+            const marker = L.marker(p.coord, { icon: icons[p.type] || icons.place });
+            const popupHTML = `
+                <div class="custom-popup popup-${p.type || 'place'}">
+                    <div class="popup-title">${p.title}</div>
+                    <div class="popup-desc">${p.desc}</div>
+                    <div class="popup-latin">${p.latin}</div>
+                </div>
+            `;
+            marker.bindPopup(popupHTML);
+            marker.pointData = p;
+            allMarkers.push(marker);
+        });
+        renderMarkers();
+    }
+
+    function renderMarkers() {
+        const checked = Array.from(document.querySelectorAll('#filter-bar input:checked')).map(i => i.value);
+        markersCluster.clearLayers();
+        allMarkers.forEach(m => {
+            if (checked.includes(m.pointData.type)) markersCluster.addLayer(m);
+        });
+        map.addLayer(markersCluster);
+    }
+
+    // 4. 搜索与自动补全逻辑
+    const searchInput = document.getElementById('search-input');
+    const suggestBox = document.getElementById('autocomplete-list');
+
+    function jumpToMarker(marker) {
+        // 自动勾选对应分类并刷新
+        const cb = document.querySelector(`#filter-bar input[value="${marker.pointData.type}"]`);
+        if (!cb.checked) { cb.checked = true; renderMarkers(); }
+        
+        // 跳转并打开弹窗
+        markersCluster.zoomToShowLayer(marker, () => {
+            marker.openPopup();
+            map.panTo(marker.getLatLng());
+        });
+    }
+
+    searchInput.oninput = function() {
+        const val = this.value.trim().toLowerCase();
+        suggestBox.innerHTML = '';
+        if (!val) { suggestBox.style.display = 'none'; return; }
+
+        const matches = allMarkers.filter(m => 
+            m.pointData.title.toLowerCase().includes(val) || 
+            m.pointData.latin.toLowerCase().includes(val)
+        );
+
+        matches.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.innerHTML = `${m.pointData.title} <small style="color:#999">(${m.pointData.type})</small>`;
+            div.onclick = () => {
+                searchInput.value = m.pointData.title;
+                suggestBox.style.display = 'none';
+                jumpToMarker(m);
+            };
+            suggestBox.appendChild(div);
+        });
+        suggestBox.style.display = matches.length ? 'block' : 'none';
+    };
+
+    document.getElementById('search-btn').onclick = () => {
+        const val = searchInput.value.trim().toLowerCase();
+        const match = allMarkers.find(m => m.pointData.title.toLowerCase().includes(val));
+        if (match) jumpToMarker(match);
+    };
+
+    // 绑定筛选框事件
+    document.querySelectorAll('#filter-bar input').forEach(i => i.onchange = renderMarkers);
+
+    // 5. 坐标拾取
+    map.on('click', e => {
+        const y = Math.round(e.latlng.lat), x = Math.round(e.latlng.lng);
+        document.getElementById('coord-panel').innerHTML = `当前像素坐标: [${y}, ${x}]`;
+    });
+
+    // 初始化加载
+    initMarkers();
+
+    // 6. 注册 Service Worker (离线缓存)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW就绪:', reg.scope))
+                .catch(err => console.error('SW失败:', err));
+        });
+    }
+</script>
+</body>
+</html>
+
+```
