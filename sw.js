@@ -1,4 +1,4 @@
-const CACHE_NAME = 'history-map-clean-v1.4';
+const CACHE_NAME = 'history-map-clean-v1.5';
 
 // 核心资源列表
 const ASSETS_TO_CACHE = [
@@ -61,3 +61,4 @@ self.addEventListener('fetch', (event) => {
     );
 
 });
+
